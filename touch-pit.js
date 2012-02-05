@@ -56,6 +56,8 @@
 
   function capture(event){
     current.add(event);
+    event.preventDefault();
+    return false;
   }
 
   function stop(event){
@@ -73,7 +75,7 @@
     var link = $("<div/>"), tc = touchCount(pit);
     link.html("<b>"+pit.events.length+"</b> "+Math.min.apply(null, tc)+" "+Math.max.apply(null, tc));
     $("#logs").append(link);
-    link.on("mousedown", click).attr("data-log", log.length-1);
+    link.on("touchstart", click).attr("data-log", log.length-1);
   }
 
   function touchCount(pit){
@@ -88,10 +90,10 @@
   }
 
   function init(){
-    document.addEventListener("touchstart", start);
-    document.addEventListener("touchmove", capture);
-    document.addEventListener("touchend", stop);
-    document.addEventListener("touchcancel", stop);
+    document.addEventListener("touchstart", start, false);
+    document.addEventListener("touchmove", capture, false);
+    document.addEventListener("touchend", stop, false);
+    document.addEventListener("touchcancel", stop, false);
   }
 
   init();
