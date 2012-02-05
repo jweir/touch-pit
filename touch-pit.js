@@ -10,7 +10,7 @@
   }
 
   Pit.prototype.add = function(event){
-    this.changedTouches.push(_.map(event.changedTouches, function(t){ return _.clone(t);}));
+    this.changedTouches.push(_.map(event.changedTouches, _.clone));
     this.events.push(event);
     this.timestamps.push(this.time());
     return this;
@@ -30,7 +30,6 @@
 
   Pit.prototype.stats = function(frame){
     var s = $("#stats").text("");
-
     // _(this.events).each(function(e){
       // s.text(s.text()+_(e).keys());
       // s.text(s.text()+_(e).values());
@@ -73,7 +72,11 @@
 
   function drawLink(pit){
     var link = $("<div/>"), tc = touchCount(pit);
-    link.html("<b>"+pit.events.length+"</b> "+Math.min.apply(null, tc)+" "+Math.max.apply(null, tc));
+    link.html(
+      "<b>"+pit.events.length + "</b> "+
+      Math.min.apply(null, tc)+ " "    +
+      Math.max.apply(null, tc));
+
     $("#logs").append(link);
     link.on("touchstart", click).attr("data-log", log.length-1);
   }
@@ -90,10 +93,10 @@
   }
 
   function init(){
-    document.addEventListener("touchstart", start, false);
-    document.addEventListener("touchmove", capture, false);
-    document.addEventListener("touchend", stop, false);
-    document.addEventListener("touchcancel", stop, false);
+    document.addEventListener("touchstart"  , start   , false);
+    document.addEventListener("touchmove"   , capture , false);
+    document.addEventListener("touchend"    , stop    , false);
+    document.addEventListener("touchcancel" , stop    , false);
   }
 
   init();
