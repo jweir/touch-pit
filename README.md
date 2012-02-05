@@ -1,3 +1,5 @@
+![image](https://github.com/jweir/touch-pit/raw/master/misc/touch-pit-image.png)
+
 Touch Pit
 =========
 
