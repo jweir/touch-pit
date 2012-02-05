@@ -2,30 +2,55 @@
 
   var log = [], current, lastTime;
 
-  function time(){
-    var now = new Date(), diff;
-    lastTime = lastTime || now;
-    diff = now - lastTime;
-    lastTime = now;
-    return diff;
+  function Pit(){
+    this.events         = [];
+    this.timestamps     = [];
+    this.changedTouches = [];
+    this.startTime      = new Date();
   }
 
+  Pit.prototype.add = function(event){
+    this.changedTouches.push(_.map(event.changedTouches, function(t){ return _.clone(t);}));
+    this.events.push(event);
+    this.timestamps.push(this.time());
+  };
+
+  Pit.prototype.time = function(){
+    return new Date() - this.startTime;
+  };
+
+  Pit.prototype.replay = function(){
+    var self = this;
+    _.each(this.timestamps, function(t, i){
+      setTimeout(function(){self.drawFrame(i);}, t);
+    });
+  };
+
+  Pit.prototype.drawFrame = function(frame){
+    _.each(this.changedTouches[frame], this.drawTouch);
+  };
+
+  Pit.prototype.drawTouch = function(touch){
+    var el = $("<div/>").addClass("touch");
+    el.css({left: touch.clientX, top: touch.clientY });
+    $("body").append(el);
+  };
+
   function start(event){
-    current = [];
+    current = new Pit();
     $("body").addClass("started");
-    capture(event);
+    current.add(event);
   }
 
   function capture(event){
-    var changedTouches = _.map(event.changedTouches, function(t){ return _.clone(t);});
-    current.push([time(), changedTouches]);
+    current.add(event);
   }
 
   function stop(event){
-    capture(event);
+    current.add(event);
     $("body").removeClass("started");
     lastTime = null;
-    if(current.length === 0){ return true;
+    if(current.events.length === 0){ return true;
     } else {
       log.push(current);
       drawLink(current);
@@ -33,45 +58,24 @@
     }
   }
 
-  function drawLink(collection){
-    var link = $("<div/>");
+  function drawLink(pit){
+    var link = $("<div/>"), tc = touchCount(pit);
 
-    link.html("<b>"+current.length+"</b> "+Math.min.apply(null, touchCount(collection))+" "+Math.max.apply(null, touchCount(collection)));
+    link.html("<b>"+pit.events.length+"</b> "+Math.min.apply(null, tc)+" "+Math.max.apply(null, tc));
     $("#logs").append(link);
     link.on("mousedown", click).attr("data-log", log.length-1);
   }
 
-  function touchCount(collection){
-    var touches = _(collection).map(function(i){ return i[1];});
-    return _.pluck(touches, "length");
+  function touchCount(pit){
+    return _.pluck(pit.changedTouches, "length");
   }
 
   function click(event){
-    animate(_.clone(log[this.getAttribute("data-log")]));
+    var index = $(this).attr("data-log");
+    log[index].replay();
     $(".touch").remove();
     return true;
   }
-
-  function animate(remaining){
-    var frame = remaining.shift();
-    if(frame){
-      setTimeout(function(){drawFrame(frame[1], remaining);}, frame[0]);
-    } else {
-      console.log("done");
-    }
-  }
-
-  function drawFrame(frame, remaining){
-    _.each(frame || [], drawTouch);
-    animate(remaining);
-  }
-
-  function drawTouch(touch){
-    var el = $("<div/>").addClass("touch");
-    el.css({left: touch.clientX, top: touch.clientY });
-    $("body").append(el);
-  }
-
 
   function init(){
     document.addEventListener("touchstart", start);
