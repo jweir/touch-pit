@@ -1,6 +1,6 @@
 (function(){
 
-  var log = [], current, lastTime;
+  var log = [], current;
 
   function Pit(){
     this.events         = [];
@@ -13,6 +13,7 @@
     this.changedTouches.push(_.map(event.changedTouches, function(t){ return _.clone(t);}));
     this.events.push(event);
     this.timestamps.push(this.time());
+    return this;
   };
 
   Pit.prototype.time = function(){
@@ -24,6 +25,16 @@
     _.each(this.timestamps, function(t, i){
       setTimeout(function(){self.drawFrame(i);}, t);
     });
+    return this;
+  };
+
+  Pit.prototype.stats = function(frame){
+    var s = $("#stats").text("");
+
+    // _(this.events).each(function(e){
+      // s.text(s.text()+_(e).keys());
+      // s.text(s.text()+_(e).values());
+    // });
   };
 
   Pit.prototype.drawFrame = function(frame){
@@ -36,10 +47,11 @@
     $("body").append(el);
   };
 
+  /////////////////////////////////////
   function start(event){
     current = new Pit();
     $("body").addClass("started");
-    current.add(event);
+    capture(event);
   }
 
   function capture(event){
@@ -47,9 +59,8 @@
   }
 
   function stop(event){
-    current.add(event);
+    capture(event);
     $("body").removeClass("started");
-    lastTime = null;
     if(current.events.length === 0){ return true;
     } else {
       log.push(current);
@@ -60,7 +71,6 @@
 
   function drawLink(pit){
     var link = $("<div/>"), tc = touchCount(pit);
-
     link.html("<b>"+pit.events.length+"</b> "+Math.min.apply(null, tc)+" "+Math.max.apply(null, tc));
     $("#logs").append(link);
     link.on("mousedown", click).attr("data-log", log.length-1);
@@ -72,7 +82,7 @@
 
   function click(event){
     var index = $(this).attr("data-log");
-    log[index].replay();
+    log[index].replay().stats();
     $(".touch").remove();
     return true;
   }
